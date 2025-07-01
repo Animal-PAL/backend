@@ -84,18 +84,18 @@ jobs:
 #          overwrite: true
 #          debug: true
 
-#      - name: docker-compose.yml GCP에 복사
-#        uses: appleboy/scp-action@v0.1.7
-#        with:
-#          host: ${{ secrets.GCP_HOST }}
-#          username: ${{ secrets.GCP_USERNAME }}
-#          key: ${{ secrets.GCP_PRIVATEKEY }}
-#          port: 22
-#          source: "docker-compose.yml"
-#          target: "/home/animal"
-#          overwrite: true
-#          strip_components: 1
-#          debug: true
+      - name: docker-compose.yml GCP에 복사
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_PRIVATEKEY }}
+          port: 22
+          source: "docker-compose.yml"
+          target: "/home/animal"
+          overwrite: true
+          strip_components: 1
+          debug: true
 
 
       - name: GCP 서버에 SSH 접속하여 배포
