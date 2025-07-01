@@ -105,6 +105,7 @@ jobs:
             sudo docker login -u ${{ secrets.DOCKERHUB_ID }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             sudo docker pull ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
             cd /home/ ${{secrets.GCP_USERNAME}}/animal
+            pwd
             sudo docker compose down || true
             sudo docker compose up -d --remove-orphans
             sudo docker image prune -f
