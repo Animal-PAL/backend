@@ -48,6 +48,7 @@ jobs:
             docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app:latest .
           else
             docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest .
+          fi
 
       - name: 도커 이미지 푸시
         run: |
@@ -56,6 +57,7 @@ jobs:
             docker push ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
           else
             docker push ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest
+          fi
 
   # ================================
   # 🚀 CD: GCP VM에 배포
