@@ -1,6 +1,6 @@
 services:
   spring-app:
-    image: yikanghee/animal-app:latest
+    image: yikanghee/animal-app-main:latest
     container_name: animal-app
     ports:
       - "8080:8080"
