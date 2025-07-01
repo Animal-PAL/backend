@@ -43,11 +43,19 @@ jobs:
 
       - name: 도커 이미지 빌드
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app:latest .
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [ "$BRANCH_NAME" = "main" ]; then
+            docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app:latest .
+          else
+            docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest .
 
       - name: 도커 이미지 푸시
         run: |
-          docker push ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [ "$BRANCH_NAME" = "main" ]; then
+            docker push ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
+          else
+            docker push ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest
 
   # ================================
   # 🚀 CD: GCP VM에 배포
