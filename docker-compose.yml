@@ -1,4 +1,3 @@
-version: '3'
 services:
   spring-app:
     image: yikanghee/animal-app:latest
