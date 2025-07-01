@@ -8,6 +8,6 @@ public class Controller {
 
      @GetMapping("/test")
      public String exampleEndpoint() {
-         return "Hello, World!";
+         return "고생했다 이놈아";
      }
 }
