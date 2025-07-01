@@ -1,0 +1,7 @@
+version: '3'
+services:
+  spring-app:
+    image: yikanghee/animal-app:latest
+    container_name: animal-app
+    ports:
+      - "8080:8080"
