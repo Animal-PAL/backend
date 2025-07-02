@@ -2,5 +2,7 @@ services:
   spring-app:
     image: yikanghee/animal-app-main:latest
     container_name: animal-app
+    env_file:
+      - .env
     ports:
       - "8080:8080"
