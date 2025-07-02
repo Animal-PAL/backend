@@ -1,7 +1,21 @@
 spring:
-    application:
-        name: animal-app
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 springdoc:
   swagger-ui:
       path: /swagger-ui.html
+
+jwt:
+  secret: ajvnkjafnvofdnvasvnasvnlasvnlvnafslvnlanvlkfasvnlkafvnlkfvniavnsvasvnaslvnaslvkansdlnaslasdklmasdlk
+  expiration: 3600000 # 1 hour
+  refresh:
+    expiration: 604800000 # 7 days
