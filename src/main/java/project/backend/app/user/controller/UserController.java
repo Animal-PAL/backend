@@ -28,6 +28,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.createSuccessNoContent("회원가입이 완료되었습니다."));
     }
 
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Void>> login(@RequestBody LoginInfoRequestDto loginInfoRequestDto, HttpServletResponse response) {
         // 로그인 로직을 여기에 추가
