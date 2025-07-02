@@ -21,14 +21,14 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping
+    @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
         // 회원가입 로직을 여기에 추가
         userService.signUp(signUpRequestDto);
         return ResponseEntity.ok(ApiResponse.createSuccessNoContent("회원가입이 완료되었습니다."));
     }
 
-    @PostMapping
+    @PostMapping("/login")
     public ResponseEntity<ApiResponse<Void>> login(@RequestBody LoginInfoRequestDto loginInfoRequestDto, HttpServletResponse response) {
         // 로그인 로직을 여기에 추가
         userService.login(loginInfoRequestDto, response);
