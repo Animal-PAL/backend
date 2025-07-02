@@ -8,4 +8,5 @@ public record SignUpRequestDto(
         String userName,
         String password
 ) {
+
 }

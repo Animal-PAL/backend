@@ -7,4 +7,5 @@ public record LoginInfoRequestDto (
         String email,
         String password
 ) {
+
 }
