@@ -101,15 +101,15 @@ jobs:
 
       - name: .env 파일 GCP에 복사
         run: |
-           echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
-           chmod 600 gcp_key.pem
-                  
-           echo "${{ secrets.ENV_FILE }}" | base64 --decode > .env
-                  
-           scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
-                  
-           echo "✅ .env 파일 복사 완료"
-           rm gcp_key.pem .env
+          echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
+          chmod 600 gcp_key.pem
+          
+          echo "${{ secrets.ENV_FILE }}" | base64 --decode > .env
+          
+          scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
+          
+          echo "✅ .env 파일 복사 완료"
+          rm gcp_key.pem .env
 
           echo "🔍 복사된 docker-compose.yml 확인"
           ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml"
