@@ -132,7 +132,12 @@ jobs:
           port: 22
           script: |
             sudo docker login -u ${{ secrets.DOCKERHUB_ID }} --password-stdin ${{ secrets.DOCKERHUB_TOKEN }}
+            BRANCH_NAME=${GITHUB_REF##*/}
+            if [ "$BRANCH_NAME" = "main" ]; then
             sudo docker pull ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
+            else
+            sudo docker pull ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest
+            fi
             cd /home/${{secrets.GCP_USERNAME}}/animal
             pwd
             sudo docker compose down || true
