@@ -90,6 +90,12 @@ jobs:
 ##
 ##            echo "✅ .env 파일 복사 완료"
 ##            rm gcp_key.pem .env
+
+      - name: GCP SSH 키 파일 생성
+        run: |
+          echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
+          chmod 600 gcp_key.pem
+
       - name: .env 파일 생성
         run: |
           echo "DB_HOST"=${{ secrets.DB_HOST }} >> .env
@@ -101,26 +107,15 @@ jobs:
 
       - name: .env 파일 GCP에 복사
         run: |
-          echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
-          chmod 600 gcp_key.pem
-          
-          echo "${{ secrets.ENV_FILE }}" | base64 --decode > .env
-          
+          # GCP에 .env 파일 복사
           scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
-          
           echo "✅ .env 파일 복사 완료"
-          rm gcp_key.pem .env
-
-          echo "🔍 복사된 docker-compose.yml 확인"
-          ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml"
-
-          rm gcp_key.pem
+      
+          # .env, 키파일 정리
+          rm .env
 
       - name: docker-compose.yml GCP에 복사 + 상태 확인
         run: |
-          echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
-          chmod 600 gcp_key.pem
-          
           BRANCH_NAME=${GITHUB_REF##*/}
           if [ "$BRANCH_NAME" = "main" ]; then
             echo "👉 main 브랜치 - 8080으로 설정"
@@ -133,6 +128,10 @@ jobs:
           echo "🔍 복사된 docker-compose.yml 확인"
           ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml"
           
+
+      - name: GCP SSH 키 파일 삭제
+        run: |
+          echo "🔑 GCP SSH 키 파일 삭제"
           rm gcp_key.pem
 
       - name: GCP 서버에 SSH 접속하여 배포
