@@ -71,26 +71,6 @@ jobs:
       - name: 레포지토리 체크아웃
         uses: actions/checkout@v4
 
-      # - name: .env 파일 생성
-      #   run: |
-      #     echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> .env
-      #     echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> .env
-      #     echo "NAVER_REDIRECT_URI=${{ secrets.NAVER_REDIRECT_URI }}" >> .env
-      #     echo "KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}" >> .env
-      #     echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> .env
-
-#      - name: .env 파일 GCP에 복사
-#          run: |
-#            echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
-##            chmod 600 gcp_key.pem
-##
-##            echo "${{ secrets.ENV_FILE }}" | base64 --decode > .env
-##
-##            scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
-##
-##            echo "✅ .env 파일 복사 완료"
-##            rm gcp_key.pem .env
-
       - name: GCP SSH 키 파일 생성
         run: |
           echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
@@ -110,6 +90,10 @@ jobs:
           # GCP에 .env 파일 복사
           scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
           echo "✅ .env 파일 복사 완료"
+          
+          # GCP에서 .env 파일 내용 확인
+          ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/.env"
+          echo "🔍 GCP에서 .env 파일 내용 확인 완료"
       
           # .env, 키파일 정리
           rm .env
@@ -154,3 +138,6 @@ jobs:
             sudo docker compose down || true
             sudo docker compose up -d --remove-orphans
             sudo docker image prune -f
+      
+            echo "✅ 배포 완료! 서버 상태 확인 중..."
+            sudo docker compose -logs
