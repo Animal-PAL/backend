@@ -13,7 +13,6 @@ spring:
   # test
 #  profiles:
 #    active: local
-
 springdoc:
   swagger-ui:
       path: /swagger-ui.html
