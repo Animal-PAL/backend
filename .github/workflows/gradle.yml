@@ -140,4 +140,4 @@ jobs:
             sudo docker image prune -f
       
             echo "✅ 배포 완료! 서버 상태 확인 중..."
-            sudo docker compose -logs
+            sudo docker compose logs
