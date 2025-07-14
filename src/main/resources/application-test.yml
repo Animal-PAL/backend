@@ -1,0 +1,23 @@
+spring:
+  # H2 데이터베이스 설정 (테스트용 인메모리 DB)
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL # H2를 PostgreSQL 모드로 실행
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # 테스트 시작 시 테이블 생성, 종료 시 삭제
+    # --- JPA 쿼리를 로그에 출력하는 핵심 설정 ---
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true # SQL을 보기 좋게 포맷팅
+        default_batch_fetch_size: 100
+    defer-datasource-initialization: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug # SQL과 파라미터를 함께 보여줌
+    org.hibernate.orm.jdbc.bind: trace # ?에 바인딩되는 파라미터 값을 보여줌 (더 상세)
