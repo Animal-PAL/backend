@@ -1,4 +1,4 @@
-package project.backend.app.user.controller;
+package project.backend.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,11 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import project.backend.Util.ApiResponse;
-import project.backend.app.user.dto.LoginInfoRequestDto;
-import project.backend.app.user.dto.SignUpRequestDto;
-import project.backend.app.user.service.UserService;
-import project.backend.swagger.SwaggerDto;
+import project.backend.application.common.ApiResponse;
+import project.backend.application.dto.user.LoginInfoRequestDto;
+import project.backend.application.dto.user.SignUpRequestDto;
+import project.backend.application.service.user.UserService;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +41,8 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = SignUpRequestDto.class))
             )
             @RequestBody SignUpRequestDto signUpRequestDto) {
+
+        log.info("회원가입 요청: {}", signUpRequestDto);
         // 회원가입 로직을 여기에 추가
         userService.signUp(signUpRequestDto);
         return ResponseEntity.ok(ApiResponse.createSuccessNoContent("회원가입이 완료되었습니다."));

@@ -1,4 +1,4 @@
-package project.backend.app.user.entity;
+package project.backend.domain.model.user;
 
 public enum UserRole {
     ADMIN, USER;

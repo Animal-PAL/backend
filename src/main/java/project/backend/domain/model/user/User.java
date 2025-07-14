@@ -1,7 +1,8 @@
-package project.backend.app.user.entity;
+package project.backend.domain.model.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import project.backend.domain.model.common.AuditBaseEntity;
 
 @Entity
 @Builder
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "users")
-public class User {
+public class User extends AuditBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +25,5 @@ public class User {
 
     private String password;
 
-    private Long isSocial; // 0: 일반, 1: 소셜
-
+    private Long isSocial; // 1: 일반, 2: 소셜
 }
