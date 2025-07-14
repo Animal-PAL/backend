@@ -1,4 +1,4 @@
-package project.backend.Util;
+package project.backend.application.common;
 
 import lombok.Getter;
 
