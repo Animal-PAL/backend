@@ -11,6 +11,8 @@ jobs:
   ci-build:
     name: 🔧 CI - Build & Docker Push
     runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: ${{ github.ref == 'refs/heads/main' && format('{0}/animal-app', secrets.DOCKERHUB_ID) || format('{0}/animal-app-develop', secrets.DOCKERHUB_ID) }}
 
     steps:
       - name: 레포지토리 체크아웃
@@ -27,7 +29,7 @@ jobs:
 
       - name: application.yml 생성
         run: |
-          sudo mkdir -p src/main/resources
+          mkdir -p src/main/resources
           echo "${{ secrets.APPLICATION_PROPERTIES }}" | base64 --decode > src/main/resources/application.yml
 
       - name: gradlew 빌드
@@ -41,82 +43,62 @@ jobs:
           username: ${{ secrets.DOCKERHUB_ID }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 도커 이미지 빌드
+      - name: 도커 이미지 빌드 및 푸시
         run: |
-          BRANCH_NAME=${GITHUB_REF##*/}
-          if [ "$BRANCH_NAME" = "main" ]; then
-            docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app:latest .
-          else
-            docker build -t ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest .
-          fi
+          docker build -t ${{ env.DOCKER_IMAGE }}:latest .
+          docker push ${{ env.DOCKER_IMAGE }}:latest
 
-      - name: 도커 이미지 푸시
-        run: |
-          BRANCH_NAME=${GITHUB_REF##*/}
-          if [ "$BRANCH_NAME" = "main" ]; then
-            docker push ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
-          else
-            docker push ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest
-          fi
 
-  # ================================
-  # 🚀 CD: GCP VM에 배포
-  # ================================
   cd-deploy:
     name: 🚀 CD - Deploy to GCP VM
     runs-on: ubuntu-latest
     needs: ci-build
+    env:
+      DOCKER_IMAGE: ${{ github.ref == 'refs/heads/main' && format('{0}/animal-app', secrets.DOCKERHUB_ID) || format('{0}/animal-app-develop', secrets.DOCKERHUB_ID) }}
+      REMOTE_DIR: /home/${{ secrets.GCP_USERNAME }}/animal
 
     steps:
       - name: 레포지토리 체크아웃
         uses: actions/checkout@v4
 
-      - name: GCP SSH 키 파일 생성
+      - name: GCP SSH 키 파일 생성 및 .env 파일 복사
         run: |
+          # 1. SSH 키 파일 생성
           echo "${{ secrets.GCP_PRIVATEKEY }}" > gcp_key.pem
           chmod 600 gcp_key.pem
 
-      - name: .env 파일 생성
-        run: |
-          echo "DB_HOST"=${{ secrets.DB_HOST }} >> .env
-          echo "DB_PORT"=${{ secrets.DB_PORT }} >> .env
-          echo "DB_NAME"=${{ secrets.DB_NAME }} >> .env
-          echo "DB_USERNAME"=${{ secrets.DB_USERNAME }} >> .env
-          echo "DB_PASSWORD"=${{ secrets.DB_PASSWORD }} >> .env
-          
+          # 2. .env 파일 생성
+          {
+            echo "DB_HOST=${{ secrets.DB_HOST }}"
+            echo "DB_PORT=${{ secrets.DB_PORT }}"
+            echo "DB_NAME=${{ secrets.DB_NAME }}"
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}"
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+          } > .env
 
-      - name: .env 파일 GCP에 복사
-        run: |
-          # GCP에 .env 파일 복사
-          scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/.env
-          echo "✅ .env 파일 복사 완료"
-          
-          # GCP에서 .env 파일 내용 확인
-          ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/.env"
-          echo "🔍 GCP에서 .env 파일 내용 확인 완료"
-      
-          # .env, 키파일 정리
-          rm .env
+          # 3. .env 파일 GCP에 복사
+          echo "✅ .env 파일 복사 중..."
+          scp -i gcp_key.pem -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:${{ env.REMOTE_DIR }}/.env
 
-      - name: docker-compose.yml GCP에 복사 + 상태 확인
+      - name: main용 docker-compose.yml GCP에 복사
+        if: github.ref == 'refs/heads/main'
         run: |
-          BRANCH_NAME=${GITHUB_REF##*/}
-          if [ "$BRANCH_NAME" = "main" ]; then
-            echo "👉 main 브랜치 - 8080으로 설정"
-            scp -i gcp_key.pem -o StrictHostKeyChecking=no docker-compose.main.yml ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml
-          elif [ "$BRANCH_NAME" = "develop" ]; then
-            echo "👉 develop 브랜치 - 8081로 설정"
-            scp -i gcp_key.pem -o StrictHostKeyChecking=no docker-compose.develop.yml ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:/home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml
-          fi
-          
-          echo "🔍 복사된 docker-compose.yml 확인"
-          ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat /home/${{ secrets.GCP_USERNAME }}/animal/docker-compose.yml"
-          
+          echo "👉 main 브랜치 - docker-compose.main.yml 복사"
+          scp -i gcp_key.pem -o StrictHostKeyChecking=no docker-compose.main.yml ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:${{ env.REMOTE_DIR }}/docker-compose.yml
 
-      - name: GCP SSH 키 파일 삭제
+      - name: develop용 docker-compose.yml GCP에 복사
+        if: github.ref == 'refs/heads/develop'
         run: |
-          echo "🔑 GCP SSH 키 파일 삭제"
-          rm gcp_key.pem
+          echo "👉 develop 브랜치 - docker-compose.develop.yml 복사"
+          scp -i gcp_key.pem -o StrictHostKeyChecking=no docker-compose.develop.yml ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }}:${{ env.REMOTE_DIR }}/docker-compose.yml
+
+      - name: GCP에서 파일 확인 및 로컬 파일 정리
+        run: |
+          echo "🔍 GCP에서 docker-compose.yml 파일 내용 확인"
+          ssh -i gcp_key.pem -o StrictHostKeyChecking=no ${{ secrets.GCP_USERNAME }}@${{ secrets.GCP_HOST }} "cat ${{ env.REMOTE_DIR }}/docker-compose.yml"
+          
+          echo "🔑 로컬 임시 파일(.env, gcp_key.pem) 삭제"
+          rm .env gcp_key.pem
 
       - name: GCP 서버에 SSH 접속하여 배포
         uses: appleboy/ssh-action@v1.0.3
@@ -126,18 +108,26 @@ jobs:
           key: ${{ secrets.GCP_PRIVATEKEY }}
           port: 22
           script: |
-            sudo docker login -u ${{ secrets.DOCKERHUB_ID }} --password-stdin ${{ secrets.DOCKERHUB_TOKEN }}
-            BRANCH_NAME=${GITHUB_REF##*/}
-            if [ "$BRANCH_NAME" = "main" ]; then
-            sudo docker pull ${{ secrets.DOCKERHUB_ID }}/animal-app:latest
-            else
-            sudo docker pull ${{ secrets.DOCKERHUB_ID }}/animal-app-develop:latest
-            fi
-            cd /home/${{secrets.GCP_USERNAME}}/animal
-            pwd
+            # Docker Hub에 안전하게 로그인합니다.
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_ID }} --password-stdin
+            
+            # 환경 변수를 사용하여 올바른 이미지를 pull 합니다.
+            echo "🐳 최신 이미지 pull: ${{ env.DOCKER_IMAGE }}:latest"
+            sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
+            
+            
+            # 배포 디렉토리로 이동합니다.
+            cd ${{ env.REMOTE_DIR }}
+            
+            # 기존 컨테이너를 내립니다. (실패해도 계속 진행)
             sudo docker compose down || true
+            
+            # 새 컨테이너를 띄웁니다.
             sudo docker compose up -d --remove-orphans
+            
+            # 사용하지 않는 이미지를 정리하여 디스크 공간을 확보합니다.
             sudo docker image prune -f
-      
-            echo "✅ 배포 완료! 서버 상태 확인 중..."
+            
+            echo "✅ 배포 완료! 10초 후 서버 로그를 확인합니다..."
+            sleep 10
             sudo docker compose logs
