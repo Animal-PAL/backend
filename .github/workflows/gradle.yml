@@ -115,6 +115,7 @@ jobs:
             echo "🐳 최신 이미지 pull: ${{ env.DOCKER_IMAGE }}:latest"
             sudo docker pull ${{ env.DOCKER_IMAGE }}:latest
             
+            
             # 배포 디렉토리로 이동합니다.
             cd ${{ env.REMOTE_DIR }}
             
