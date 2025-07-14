@@ -1,8 +1,8 @@
-package project.backend.app.user.service;
+package project.backend.application.service.user;
 
 import jakarta.servlet.http.HttpServletResponse;
-import project.backend.app.user.dto.LoginInfoRequestDto;
-import project.backend.app.user.dto.SignUpRequestDto;
+import project.backend.application.dto.user.LoginInfoRequestDto;
+import project.backend.application.dto.user.SignUpRequestDto;
 
 public interface UserService {
     void signUp(SignUpRequestDto signUpRequestDto);
